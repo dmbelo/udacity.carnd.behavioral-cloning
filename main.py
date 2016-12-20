@@ -2,53 +2,66 @@ from csv import reader
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
-import random
+import math
 
+def dataGenerator(csvFile, NBatchSize=1, BShuffle=False):
+    f = open(csvFile)
+    csvReader = reader(f)
 
-# Training set statistics
-csvFile = '/Users/david/Documents/udacity/carnd.behavioral-cloning/data/driving_log.csv'
+    leftImageName = []
+    centerImageName = []
+    rightImageName = []
+    aSteerWheel = []
+    vCar = []
+    header = csvReader.__next__()
 
-f = open(csvFile)
-csvReader = reader(f)
+    # TODO is there a way to sniff the csv and pre allocate?
+    for i,row in enumerate(csvReader):
+        leftImageName.append(row[1].strip())
+        centerImageName.append(row[0].strip())
+        rightImageName.append(row[2].strip())
+        aSteerWheel.append(np.single(row[3]))
+        vCar.append(np.single(row[6]))
 
-leftImageName = []
-centerImageName = []
-rightImageName = []
-aSteerWheel = []
-vCar = []
-header = csvReader.__next__()
+    NImages = len(aSteerWheel)
+    NBatches = math.ceil(NImages/NBatchSize)
 
-# TODO is there a way to sniff the csv and pre allocate?
-for i,row in enumerate(csvReader):
-    leftImageName.append(row[1].strip())
-    centerImageName.append(row[0].strip())
-    rightImageName.append(row[2].strip())
-    aSteerWheel.append(np.single(row[3]))
-    vCar.append(np.single(row[6]))
+    if BShuffle:
+        i = np.arange(NImages, dtype=np.uint8)
+        np.random.shuffle(i)
+        leftImageName = [leftImageName[idx] for idx in i]
+        centerImageName = [centerImageName[idx] for idx in i]
+        rightImageName = [rightImageName[idx] for idx in i]
+        aSteerWheel = [aSteerWheel[idx] for idx in i]
+        vCar = [vCar[idx] for idx in i]
 
-NSamples = len(aSteerWheel)
-print('Number of samples: {:d}'.format(NSamples))
+    tmp = mpimg.imread('data/'+centerImageName[0])
+    imageShape = tmp.shape
 
-plt.figure()
-plt.hist(aSteerWheel, bins=50)
-plt.xlabel('Steering Wheel Angle (rad)')
+    for i in range(NBatches):
+        # Calculate the batch indices
+        iStart = i*NBatchSize
+        iEnd = np.min([iStart+NBatchSize, NImages])
+        N = iEnd-iStart
 
-plt.figure()
-plt.hist(vCar, bins=50)
-plt.xlabel('Vehicle Speed (mph)')
+        batchLeftImageName = leftImageName[iStart:iEnd]
+        batchCenterImageName = centerImageName[iStart:iEnd]
+        batchRightImageName = rightImageName[iStart:iEnd]
 
-# Random inspection
-iSample = np.arange(NSamples)
-np.random.shuffle(iSample)
-iRandom = iSample[0:3]
+        lImage = np.zeros(np.concatenate([[N], imageShape]), dtype=np.uint8)
+        cImage = np.zeros(np.concatenate([[N], imageShape]), dtype=np.uint8)
+        rImage = np.zeros(np.concatenate([[N], imageShape]), dtype=np.uint8)
 
-plt.figure()
-for i,j in enumerate(iRandom):
-    plt.subplot(3,3,i*3+1)
-    plt.imshow(mpimg.imread('data/'+leftImageName[j]))
-    plt.subplot(3,3,i*3+2)
-    plt.imshow(mpimg.imread('data/'+centerImageName[j]))
-    plt.subplot(3,3,i*3+3)
-    plt.imshow(mpimg.imread('data/'+rightImageName[j]))
+        for j,(lImageName, cImageName, rImageName) in enumerate(zip(batchLeftImageName, batchCenterImageName, batchRightImageName)):
+            lImage[j] = mpimg.imread('data/'+lImageName)
+            cImage[j] = mpimg.imread('data/'+cImageName)
+            rImage[j] = mpimg.imread('data/'+rImageName)
 
-plt.show()
+        yield (lImage, cImage, rImage, aSteerWheel[iStart:iEnd], vCar[iStart:iEnd])
+
+if __name__ == '__main__':
+    csvFile = '/Users/david/Documents/udacity/carnd.behavioral-cloning/data/driving_log.csv'
+    out = dataGenerator(csvFile, NBatchSize=5, BShuffle=True)
+    for batch in out:
+        (XLeft, XCenter, YCenter, aSteerWheel, vCar) = batch
+        print(aSteerWheel)
