@@ -6,7 +6,7 @@ instance_id=i-0d67c40ac879ecb9c
 
 function server_usage
 {
-  echo "usage: server (start|stop|sync)"
+  echo "usage: server (start|stop|sync|ssh)"
 }
 
 function server_start
@@ -21,11 +21,18 @@ function server_stop
   aws ec2 stop-instances --instance-ids $instance_id
 }
 
+function server_ssh
+{
+  echo "Starting ssh session..."
+  ip_address=$(aws ec2 describe-instances --instance-ids $instance_id --output text --query 'Reservations[*].Instances[*].PublicIpAddress')
+  ssh carnd@$ip_address
+}
+
 function server_sync
 {
   echo "Syncing..."
   ip_address=$(aws ec2 describe-instances --instance-ids $instance_id --output text --query 'Reservations[*].Instances[*].PublicIpAddress')
-  rsync -avnL --exclude '.git*' --exclude '.DS_Store' . carnd@$ip_address:carnd.behavioral-cloning/
+  rsync -avL --exclude-from 'exclude-list.txt' . carnd@$ip_address:carnd.behavioral-cloning/
 }
 
 case $1 in
@@ -37,6 +44,9 @@ case $1 in
     ;;
   sync)
     server_sync
+    ;;
+  ssh)
+    server_ssh
     ;;
   *)
     server_usage
