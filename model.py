@@ -3,10 +3,14 @@ from keras.layers import Dense, Convolution2D, MaxPooling2D
 from keras.layers.core import Flatten, Activation, Lambda
 from keras.optimizers import Adam
 import numpy as np
-from utils import imageGenerator
+from utils import imageGenerator, process_image
+import cv2
 
-# image_shape = (66, 200, 3)
-image_shape = (160, 320, 3)
+img = cv2.imread('data/IMG/left_2016_12_01_13_37_41_968.jpg')
+img = process_image(img)
+image_shape = img.shape
+
+print('Image shape', image_shape)
 
 def nvidia():
     model = Sequential()
@@ -65,8 +69,16 @@ def train(model, file_name, n_epochs=1, batch_size=256):
         samples_per_epoch=8036,
         nb_epoch=n_epochs,
         verbose=1)
+    print('Training done')
+
+    # serialize model to JSON
+    model_json = model.to_json()
+    with open("model.json", "w") as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    model.save_weights("model.h5")
+    print("Saved model to disk")
 
 if __name__ == "__main__":
     model = nvidia()
     train(model=model, file_name='data/driving_log.csv', n_epochs=5)
-    print('Training done')

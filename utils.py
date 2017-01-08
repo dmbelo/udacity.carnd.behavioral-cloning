@@ -2,6 +2,33 @@ from csv import reader
 import numpy as np
 import math, cv2
 
+def process_image(img):
+    """ Crop from the top if croping vertically or crop equally from the sides
+    if croping horizontally
+    """
+    # height, width = img.shape[:2]
+    # Resize to 65% of the original size
+    # res = cv2.resize(img, (int(width*0.65), int(height*0.65)), interpolation = cv2.INTER_AREA)
+    # Crop the top 30% off
+    # crop = res[int(res.shape[0]*.3):,:,:]
+    # return crop
+    aspect_ratio = 2.5
+    height, width = img.shape[:2]
+
+    if width/height < aspect_ratio:
+        dy = int(height - width / aspect_ratio)
+        crop = img[dy:,:,:]
+        # height, width = crop.shape[:2]
+        # print(width/height)
+    elif width/height > aspect_ratio:
+        dx = width - height * aspect_ratio
+        crop = img[:,int(dx/2):-int(dx/2),:]
+        # height, width = crop.shape[:2]
+        # print(width/height)
+
+    # Using INTER_AREA assuming shrinking
+    res = cv2.resize(crop, (200, 80), interpolation = cv2.INTER_AREA)
+    return res
 
 def imageGenerator(file_name, NBatchSize=1, BShuffle=False):
 
@@ -36,6 +63,7 @@ def imageGenerator(file_name, NBatchSize=1, BShuffle=False):
         vCar = [vCar[idx] for idx in i]
 
     tmp = cv2.imread('data/'+centerImageName[0])
+    tmp = process_image(tmp)
     imageShape = tmp.shape
 
     while 1:
@@ -55,7 +83,8 @@ def imageGenerator(file_name, NBatchSize=1, BShuffle=False):
 
             for j,(lImageName, cImageName, rImageName) in enumerate(zip(batchLeftImageName, batchCenterImageName, batchRightImageName)):
                 # lImage[j] = mpimg.imread('data/'+lImageName)
-                cImage[j] = cv2.imread('data/'+cImageName)
+                img = cv2.imread('data/'+cImageName)
+                cImage[j] = process_image(img)
                 # rImage[j] = mpimg.imread('data/'+rImageName)
 
             # yield (lImage, cImage, rImage, aSteerWheel[iStart:iEnd], vCar[iStart:iEnd])
