@@ -28,12 +28,20 @@ function server_ssh
   ssh carnd@$ip_address
 }
 
-function server_sync
+function server_push
 {
-  echo "Syncing..."
+  echo "Pushing..."
   ip_address=$(aws ec2 describe-instances --instance-ids $instance_id --output text --query 'Reservations[*].Instances[*].PublicIpAddress')
   rsync -avL --exclude-from 'exclude-list.txt' . carnd@$ip_address:carnd.behavioral-cloning/
 }
+
+function server_fetch
+{
+  echo "Fetching..."
+  ip_address=$(aws ec2 describe-instances --instance-ids $instance_id --output text --query 'Reservations[*].Instances[*].PublicIpAddress')
+  rsync -avuL --exclude-from 'exclude-list.txt' carnd@$ip_address:carnd.behavioral-cloning/ .
+}
+
 
 case $1 in
   start)
@@ -42,8 +50,11 @@ case $1 in
   stop)
     server_stop
     ;;
-  sync)
-    server_sync
+  push)
+    server_push
+    ;;
+  fetch)
+    server_fetch
     ;;
   ssh)
     server_ssh
