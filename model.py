@@ -66,7 +66,7 @@ def train(model, file_name, n_epochs=1, batch_size=256):
 
     history = model.fit_generator(
         generator=imageGenerator(file_name, NBatchSize=256, BShuffle=True),
-        samples_per_epoch=8036,
+        samples_per_epoch=8036*3,
         nb_epoch=n_epochs,
         verbose=1)
     print('Training done')

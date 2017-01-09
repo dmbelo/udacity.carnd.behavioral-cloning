@@ -3,52 +3,52 @@ import numpy as np
 import math, cv2
 
 def process_image(img):
-    """ Crop from the top if croping vertically or crop equally from the sides
-    if croping horizontally
-    """
-    # height, width = img.shape[:2]
-    # Resize to 65% of the original size
-    # res = cv2.resize(img, (int(width*0.65), int(height*0.65)), interpolation = cv2.INTER_AREA)
-    # Crop the top 30% off
-    # crop = res[int(res.shape[0]*.3):,:,:]
-    # return crop
-    aspect_ratio = 2.5
-    height, width = img.shape[:2]
+    ASPECT_RATIO = 2.5
 
-    if width/height < aspect_ratio:
-        dy = int(height - width / aspect_ratio)
-        crop = img[dy:,:,:]
-        # height, width = crop.shape[:2]
-        # print(width/height)
-    elif width/height > aspect_ratio:
-        dx = width - height * aspect_ratio
+    height, width = img.shape[:2]
+    # print('height:', height)
+    # print('width:', width)
+
+    input_aspect_ratio = width/height
+    # print('input aspect ratio:', input_aspect_ratio)
+
+    if input_aspect_ratio > ASPECT_RATIO:
+        # print('Aspect ratio too great - reduce width')
+        dx = width - height * ASPECT_RATIO
+        # img_overlay = img.copy()
+        # img_overlay = cv2.rectangle(img_overlay, (int(dx/2), 0), (width-int(dx/2), height), (0, 255, 0), 3)
         crop = img[:,int(dx/2):-int(dx/2),:]
-        # height, width = crop.shape[:2]
-        # print(width/height)
+    elif input_aspect_ratio < ASPECT_RATIO:
+        # print('Aspect ratio is too small - reduce height')
+        dy = int(height - width / ASPECT_RATIO)
+        # img_overlay = img.copy()
+        # img_overlay = cv2.rectangle(img_overlay, (0, dy), (width, height), (0, 255, 0), 3)
+        crop = img[dy:,:,:]
 
     # Using INTER_AREA assuming shrinking
-    res = cv2.resize(crop, (200, 80), interpolation = cv2.INTER_AREA)
-    return res
+    return cv2.resize(crop, (200, 80), interpolation = cv2.INTER_AREA)
+
 
 def imageGenerator(file_name, NBatchSize=1, BShuffle=False):
+
+    delta_steering = 0.15
 
     f = open(file_name)
     csvReader = reader(f)
 
-    leftImageName = []
-    centerImageName = []
-    rightImageName = []
+    image_name = []
     aSteerWheel = []
-    vCar = []
     header = csvReader.__next__()
 
     # TODO is there a way to sniff the csv and pre allocate?
     for i,row in enumerate(csvReader):
-        leftImageName.append(row[1].strip())
-        centerImageName.append(row[0].strip())
-        rightImageName.append(row[2].strip())
-        aSteerWheel.append(np.single(row[3]))
-        vCar.append(np.single(row[6]))
+        image_name.append(row[0].strip()) # center
+        image_name.append(row[1].strip()) # left
+        image_name.append(row[2].strip()) # right
+        a = np.single(row[3])
+        aSteerWheel.append(a) # center
+        aSteerWheel.append(a + delta_steering) # left
+        aSteerWheel.append(a - delta_steering) # right
 
     NImages = len(aSteerWheel)
     NBatches = math.ceil(NImages/NBatchSize)
@@ -56,13 +56,10 @@ def imageGenerator(file_name, NBatchSize=1, BShuffle=False):
     if BShuffle:
         i = np.arange(NImages, dtype=np.uint8)
         np.random.shuffle(i)
-        leftImageName = [leftImageName[idx] for idx in i]
-        centerImageName = [centerImageName[idx] for idx in i]
-        rightImageName = [rightImageName[idx] for idx in i]
+        image_name = [image_name[idx] for idx in i]
         aSteerWheel = [aSteerWheel[idx] for idx in i]
-        vCar = [vCar[idx] for idx in i]
 
-    tmp = cv2.imread('data/'+centerImageName[0])
+    tmp = cv2.imread('data/'+image_name[0])
     tmp = process_image(tmp)
     imageShape = tmp.shape
 
@@ -73,19 +70,13 @@ def imageGenerator(file_name, NBatchSize=1, BShuffle=False):
             iEnd = np.min([iStart+NBatchSize, NImages])
             N = iEnd-iStart
 
-            batchLeftImageName = leftImageName[iStart:iEnd]
-            batchCenterImageName = centerImageName[iStart:iEnd]
-            batchRightImageName = rightImageName[iStart:iEnd]
+            batch_image_name = image_name[iStart:iEnd]
+            batch_image = np.zeros(np.concatenate([[N], imageShape]), dtype=np.uint8)
 
-            # lImage = np.zeros(np.concatenate([[N], imageShape]), dtype=np.uint8)
-            cImage = np.zeros(np.concatenate([[N], imageShape]), dtype=np.uint8)
-            # rImage = np.zeros(np.concatenate([[N], imageShape]), dtype=np.uint8)
+            for j, f in enumerate(batch_image_name):
+                img = cv2.imread('data/'+f)
+                batch_image[j] = process_image(img)
 
-            for j,(lImageName, cImageName, rImageName) in enumerate(zip(batchLeftImageName, batchCenterImageName, batchRightImageName)):
-                # lImage[j] = mpimg.imread('data/'+lImageName)
-                img = cv2.imread('data/'+cImageName)
-                cImage[j] = process_image(img)
-                # rImage[j] = mpimg.imread('data/'+rImageName)
+            batch_steering = np.array(aSteerWheel[iStart:iEnd])
 
-            # yield (lImage, cImage, rImage, aSteerWheel[iStart:iEnd], vCar[iStart:iEnd])
-            yield (cImage, np.array(aSteerWheel[iStart:iEnd]))
+            yield batch_image, batch_steering
