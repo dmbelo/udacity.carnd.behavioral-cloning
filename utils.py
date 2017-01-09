@@ -17,7 +17,7 @@ def process_image(img):
         dx = width - height * ASPECT_RATIO
         # img_overlay = img.copy()
         # img_overlay = cv2.rectangle(img_overlay, (int(dx/2), 0), (width-int(dx/2), height), (0, 255, 0), 3)
-        crop = img[:,int(dx/2):-int(dx/2),:]
+        crop = img[:, int(dx/2):-int(dx/2), :]
     elif input_aspect_ratio < ASPECT_RATIO:
         # print('Aspect ratio is too small - reduce height')
         dy = int(height - width / ASPECT_RATIO)
@@ -31,7 +31,7 @@ def process_image(img):
 
 def imageGenerator(file_name, NBatchSize=1, BShuffle=False):
 
-    delta_steering = 0.15
+    delta_steering = 0.08
 
     f = open(file_name)
     csvReader = reader(f)

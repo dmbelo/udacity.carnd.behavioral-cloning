@@ -2,7 +2,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Convolution2D, MaxPooling2D
 from keras.layers.core import Flatten, Activation, Lambda
 from keras.optimizers import Adam
-import numpy as np
+# import numpy as np
 from utils import imageGenerator, process_image
 import cv2
 
@@ -12,24 +12,25 @@ image_shape = img.shape
 
 print('Image shape', image_shape)
 
+
 def nvidia():
     model = Sequential()
     model.add(Lambda(lambda x: x/127.5 - 1.0, input_shape=image_shape))
     model.add(Convolution2D(
         nb_filter=24, nb_row=5, nb_col=5,
-        subsample=(2,2),
+        subsample=(2, 2),
         border_mode='valid',
         init='he_normal'))
     model.add(Activation('relu'))
     model.add(Convolution2D(
         nb_filter=36, nb_row=5, nb_col=5,
-        subsample=(2,2),
+        subsample=(2, 2),
         border_mode='valid',
         init='he_normal'))
     model.add(Activation('relu'))
     model.add(Convolution2D(
         nb_filter=48, nb_row=5, nb_col=5,
-        subsample=(2,2),
+        subsample=(2, 2),
         border_mode='valid',
         init='he_normal'))
     model.add(Activation('relu'))
@@ -57,6 +58,7 @@ def nvidia():
     model.summary()
 
     return model
+
 
 def train(model, file_name, n_epochs=1, batch_size=256):
 

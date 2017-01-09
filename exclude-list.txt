@@ -4,3 +4,4 @@ __pycache__
 bin/
 *.lprof
 *.DS_Store
+models/
