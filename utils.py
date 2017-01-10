@@ -5,25 +5,13 @@ import cv2
 
 def process_image(img):
     ASPECT_RATIO = 2.5
-
     height, width = img.shape[:2]
-    # print('height:', height)
-    # print('width:', width)
-
     input_aspect_ratio = width/height
-    # print('input aspect ratio:', input_aspect_ratio)
-
     if input_aspect_ratio > ASPECT_RATIO:
-        # print('Aspect ratio too great - reduce width')
-        dx = width - height * ASPECT_RATIO
-        # img_overlay = img.copy()
-        # img_overlay = cv2.rectangle(img_overlay, (int(dx/2), 0), (width-int(dx/2), height), (0, 255, 0), 3)
+        dx = width - height * ASPECT_RATI
         crop = img[:, int(dx/2):-int(dx/2), :]
     elif input_aspect_ratio < ASPECT_RATIO:
-        # print('Aspect ratio is too small - reduce height')
         dy = int(height - width / ASPECT_RATIO)
-        # img_overlay = img.copy()
-        # img_overlay = cv2.rectangle(img_overlay, (0, dy), (width, height), (0, 255, 0), 3)
         crop = img[dy:, :, :]
 
     # Using INTER_AREA assuming shrinking
@@ -42,7 +30,7 @@ def trim_zero_steer(steer, n_trim):
     return idx_trimmed
 
 
-def parse_csv(file_name, delta_steering=0.08, n_trim=None):
+def parse_csv(file_name, delta_steering=0.15, n_trim=None):
     raw = np.genfromtxt(file_name,
                         skip_header=1,
                         delimiter=',',
