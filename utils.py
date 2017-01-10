@@ -1,6 +1,7 @@
-from csv import reader
 import numpy as np
-import math, cv2
+import math
+import cv2
+
 
 def process_image(img):
     ASPECT_RATIO = 2.5
@@ -23,60 +24,88 @@ def process_image(img):
         dy = int(height - width / ASPECT_RATIO)
         # img_overlay = img.copy()
         # img_overlay = cv2.rectangle(img_overlay, (0, dy), (width, height), (0, 255, 0), 3)
-        crop = img[dy:,:,:]
+        crop = img[dy:, :, :]
 
     # Using INTER_AREA assuming shrinking
-    return cv2.resize(crop, (200, 80), interpolation = cv2.INTER_AREA)
+    return cv2.resize(crop, (200, 80), interpolation=cv2.INTER_AREA)
 
 
-def imageGenerator(file_name, NBatchSize=1, BShuffle=False):
+def trim_zero_steer(steer, n_trim):
 
-    delta_steering = 0.08
+    N = len(steer)
+    idx = np.arange(N)
+    idx_zero = idx[steer == 0]
+    np.random.shuffle(idx_zero)
+    idx_non_zero = idx[steer != 0]
+    idx_trimmed = np.sort(np.concatenate([idx_non_zero, idx_zero[:n_trim]]))
 
-    f = open(file_name)
-    csvReader = reader(f)
+    return idx_trimmed
 
-    image_name = []
-    aSteerWheel = []
-    header = csvReader.__next__()
 
-    # TODO is there a way to sniff the csv and pre allocate?
-    for i,row in enumerate(csvReader):
-        image_name.append(row[0].strip()) # center
-        image_name.append(row[1].strip()) # left
-        image_name.append(row[2].strip()) # right
-        a = np.single(row[3])
-        aSteerWheel.append(a) # center
-        aSteerWheel.append(a + delta_steering) # left
-        aSteerWheel.append(a - delta_steering) # right
+def parse_csv(file_name, delta_steering=0.08, n_trim=None):
+    raw = np.genfromtxt(file_name,
+                        skip_header=1,
+                        delimiter=',',
+                        autostrip=True,
+                        dtype=("|S50", "|S50", "|S50",
+                               np.single, np.single, np.single, np.single))
 
-    NImages = len(aSteerWheel)
-    NBatches = math.ceil(NImages/NBatchSize)
+    img_file, steer = zip(*[[[x[0].decode('utf-8'),
+                              x[1].decode('utf-8'),
+                              x[2].decode('utf8')], x[3]] for x in raw])
 
-    if BShuffle:
-        i = np.arange(NImages, dtype=np.uint8)
-        np.random.shuffle(i)
-        image_name = [image_name[idx] for idx in i]
-        aSteerWheel = [aSteerWheel[idx] for idx in i]
+    img_file = np.array(img_file)
+    img_file_c = img_file[:, 0]
+    img_file_l = img_file[:, 1]
+    img_file_r = img_file[:, 2]
+    steer_c = np.array(steer)
+    steer_l = steer_c + np.float32(delta_steering)
+    steer_r = steer_c - np.float32(delta_steering)
 
-    tmp = cv2.imread('data/'+image_name[0])
-    tmp = process_image(tmp)
-    imageShape = tmp.shape
+    if n_trim:
+        idx = trim_zero_steer(np.array(steer_c), n_trim)
+        img_file_c = img_file_c[idx]
+        img_file_l = img_file_l[idx]
+        img_file_r = img_file_r[idx]
+        steer_c = steer_c[idx]
+        steer_l = steer_l[idx]
+        steer_r = steer_r[idx]
 
-    while 1:
+    img_file_flat = np.concatenate([img_file_c, img_file_l, img_file_r])
+    steer_flat = np.concatenate([steer_c, steer_l, steer_r])
+
+    return img_file_flat, steer_flat
+
+
+def imageGenerator(image_name, aSteerWheel, NBatchSize=1, BShuffle=False):
+
+    while True:
+        NImages = len(aSteerWheel)
+        NBatches = math.ceil(NImages/NBatchSize)
+        if BShuffle:
+            i = np.arange(NImages, dtype=np.uint8)
+            np.random.shuffle(i)
+            image_name = [image_name[idx] for idx in i]
+            aSteerWheel = [aSteerWheel[idx] for idx in i]
+
+        tmp = cv2.imread('data/'+image_name[0])
+        tmp = process_image(tmp)
+        imageShape = tmp.shape
+
         for i in range(NBatches):
             # Calculate the batch indices
             iStart = i*NBatchSize
             iEnd = np.min([iStart+NBatchSize, NImages])
             N = iEnd-iStart
 
+            batch_steering = np.array(aSteerWheel[iStart:iEnd])
+
             batch_image_name = image_name[iStart:iEnd]
-            batch_image = np.zeros(np.concatenate([[N], imageShape]), dtype=np.uint8)
+            batch_image = np.zeros(np.concatenate([[N], imageShape]),
+                                   dtype=np.uint8)
 
             for j, f in enumerate(batch_image_name):
                 img = cv2.imread('data/'+f)
                 batch_image[j] = process_image(img)
-
-            batch_steering = np.array(aSteerWheel[iStart:iEnd])
 
             yield batch_image, batch_steering

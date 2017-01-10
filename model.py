@@ -1,9 +1,9 @@
 from keras.models import Sequential
-from keras.layers import Dense, Convolution2D, MaxPooling2D
+from keras.layers import Dense, Convolution2D
 from keras.layers.core import Flatten, Activation, Lambda
 from keras.optimizers import Adam
 # import numpy as np
-from utils import imageGenerator, process_image
+from utils import imageGenerator, process_image, parse_csv
 import cv2
 
 img = cv2.imread('data/IMG/left_2016_12_01_13_37_41_968.jpg')
@@ -66,9 +66,12 @@ def train(model, file_name, n_epochs=1, batch_size=256):
         loss='mean_squared_error',
         optimizer=Adam(lr=2e-3))
 
+    # img_file, steer = parse_csv('data/driving_log.csv', n_trim=350, delta_steering=0.1)
+    img_file, steer = parse_csv('data/driving_log.csv', delta_steering=0.15)
+
     history = model.fit_generator(
-        generator=imageGenerator(file_name, NBatchSize=256, BShuffle=True),
-        samples_per_epoch=8036*3,
+        generator=imageGenerator(img_file, steer, NBatchSize=256, BShuffle=True),
+        samples_per_epoch=len(steer),
         nb_epoch=n_epochs,
         verbose=1)
     print('Training done')
