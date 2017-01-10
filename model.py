@@ -65,10 +65,15 @@ def train(model, file_name, n_epochs=1, batch_size=256):
         loss='mean_squared_error',
         optimizer=Adam(lr=1e-3))
 
-    img_file, steer = parse_csv('data/driving_log.csv', n_trim=500, delta_steering=0.08)
+    img_file, steer = parse_csv('data/driving_log.csv',
+                                n_trim=500,
+                                delta_steering=0.08)
 
-    history = model.fit_generator(
-        generator=imageGenerator(img_file, steer, NBatchSize=256, BShuffle=True),
+    model.fit_generator(
+        generator=imageGenerator(img_file,
+                                 steer,
+                                 NBatchSize=256,
+                                 BShuffle=True),
         samples_per_epoch=len(steer),
         nb_epoch=n_epochs,
         verbose=1)

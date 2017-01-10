@@ -8,7 +8,7 @@ def process_image(img):
     height, width = img.shape[:2]
     input_aspect_ratio = width/height
     if input_aspect_ratio > ASPECT_RATIO:
-        dx = width - height * ASPECT_RATI
+        dx = width - height * ASPECT_RATIO
         crop = img[:, int(dx/2):-int(dx/2), :]
     elif input_aspect_ratio < ASPECT_RATIO:
         dy = int(height - width / ASPECT_RATIO)
