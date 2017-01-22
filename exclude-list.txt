@@ -5,3 +5,4 @@ bin/
 *.lprof
 *.DS_Store
 models/
+sim/

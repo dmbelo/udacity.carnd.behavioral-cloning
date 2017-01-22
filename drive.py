@@ -43,9 +43,9 @@ def telemetry(sid, data):
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
     img = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
-    print(img.shape)
-    cv2.imshow('simulator', img)
-    cv2.waitKey(0)
+    # print(img.shape)
+    # cv2.imshow('simulator', img)
+    # cv2.waitKey(0)
     processed_image_array = process_image(image_array)
     # if i % 25:
     # cv2.imwrite('~/Documents/udacity/carnd.behavioral-cloning/data/sim/image.jpg', processed_image_array)

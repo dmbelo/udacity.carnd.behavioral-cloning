@@ -100,18 +100,19 @@ def make_df(file_name):
 
 
 def process_image(img):
-    ASPECT_RATIO = 2.5
-    height, width = img.shape[:2]
-    input_aspect_ratio = width/height
-    if input_aspect_ratio > ASPECT_RATIO:
-        dx = width - height * ASPECT_RATIO
-        crop = img[:, int(dx/2):-int(dx/2), :]
-    elif input_aspect_ratio < ASPECT_RATIO:
-        dy = int(height - width / ASPECT_RATIO)
-        crop = img[dy:, :, :]
-
+    crop = img[50:-24, :, :]
+    # ASPECT_RATIO = 2.5
+    # height, width = img.shape[:2]
+    # input_aspect_ratio = width/height
+    # if input_aspect_ratio > ASPECT_RATIO:
+    #     dx = width - height * ASPECT_RATIO
+    #     crop = img[:, int(dx/2):-int(dx/2), :]
+    # elif input_aspect_ratio < ASPECT_RATIO:
+    #     dy = int(height - width / ASPECT_RATIO)
+    #     crop = img[dy:, :, :]
+    #
     # Using INTER_AREA assuming shrinking
-    return cv2.resize(crop, (200, 80), interpolation=cv2.INTER_AREA)
+    return cv2.resize(crop, (160, 43), interpolation=cv2.INTER_AREA)
 
 
 def epoch_init(idx, shuffle):
