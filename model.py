@@ -68,7 +68,7 @@ def train(model, df, n_epochs=1, batch_size=256):
         generator=image_data_generator(df=df,
                                        batch_size=256,
                                        shuffle=True),
-        samples_per_epoch=25000,
+        samples_per_epoch=30000,
         nb_epoch=n_epochs,
         verbose=1)
     print('Training done')

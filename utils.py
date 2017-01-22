@@ -93,10 +93,18 @@ def collapse(df, steer_offset):
 def make_df(file_name):
     df = pd.read_csv(file_name)
     df_filtered = filter_01(df)
-    df_down_sampled = down_sample_zeros(df_filtered, 500)
-    df_collapsed = collapse(df_down_sampled, 0.25)
-    df_collapsed.index = range(df_collapsed.shape[0])
-    return df_collapsed
+    df_collapsed = collapse(df_filtered, 0.2)
+    df_down_sampled = down_sample_zeros(df_collapsed, 500)
+    df_down_sampled.index = range(df_down_sampled.shape[0])
+    return df_down_sampled
+
+
+def augment_brightness(image_in):
+    image_out = cv2.cvtColor(image_in, cv2.COLOR_RGB2HSV)
+    random_bright = .25 + np.random.uniform()
+    image_out[:, :, 2] = image_out[:, :, 2] * random_bright
+    image_out = cv2.cvtColor(image_out, cv2.COLOR_HSV2RGB)
+    return image_out
 
 
 def process_image(img):
@@ -139,9 +147,10 @@ def image_data_generator(df, batch_size=32, shuffle=False):
         batch_steer = np.zeros([i_end - i_start, 1])
 
         for j, k in enumerate(range(i_start, i_end)):
-            steer = df.loc[idx[k], 'steering'] + np.random.randn() * 0.025
+            steer = df.loc[idx[k], 'steering'] + np.random.randn() * 0.02
             img = cv2.imread('data/' + df.loc[idx[k], 'image_file'].strip())
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = augment_brightness(img)
             b_flip = np.random.random_integers(0, 1)
             if b_flip:
                 img = cv2.flip(img, 1)
