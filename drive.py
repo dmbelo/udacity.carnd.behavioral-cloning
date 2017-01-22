@@ -17,6 +17,8 @@ from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_a
 
 from utils import process_image
 
+import cv2
+
 # Fix error with Keras and TensorFlow
 import tensorflow as tf
 tf.python.control_flow_ops = tf
@@ -29,6 +31,7 @@ prev_image_array = None
 
 @sio.on('telemetry')
 def telemetry(sid, data):
+    i = 0
     # The current steering angle of the car
     steering_angle = data["steering_angle"]
     # The current throttle of the car
@@ -40,9 +43,15 @@ def telemetry(sid, data):
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
     processed_image_array = process_image(image_array)
-    steering_angle = float(model.predict(processed_image_array[None,:,:,:], batch_size=1))
+    # if i % 25:
+    # cv2.imwrite('~/Documents/udacity/carnd.behavioral-cloning/data/sim/image.jpg', processed_image_array)
+    # i += 1
+    # print(processed_image_array.shape)
+    # cv2.imshow('simulator', processed_image_array)
+    steering_angle = float(model.predict(processed_image_array[None, :, :, :], batch_size=1))
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
     throttle = 0.2
+    print(steering_angle, throttle)
     send_control(steering_angle, throttle)
 
 

@@ -2,14 +2,13 @@ from keras.models import Sequential
 from keras.layers import Dense, Convolution2D
 from keras.layers.core import Flatten, Activation, Lambda
 from keras.optimizers import Adam
-from utils import imageGenerator, process_image, parse_csv
+from utils import image_data_generator, process_image, make_df
 import cv2
 
-img = cv2.imread('data/IMG/left_2016_12_01_13_37_41_968.jpg')
-img = process_image(img)
-image_shape = img.shape
 
-print('Image shape', image_shape)
+sample_image = cv2.imread('data/IMG/left_2016_12_01_13_37_41_968.jpg')
+image_shape = process_image(sample_image).shape
+print('Image Shape:', image_shape)
 
 
 def nvidia():
@@ -59,22 +58,17 @@ def nvidia():
     return model
 
 
-def train(model, file_name, n_epochs=1, batch_size=256):
+def train(model, df, n_epochs=1, batch_size=256):
 
     model.compile(
         loss='mean_squared_error',
         optimizer=Adam(lr=1e-3))
 
-    img_file, steer = parse_csv('data/driving_log.csv',
-                                n_trim=500,
-                                delta_steering=0.08)
-
     model.fit_generator(
-        generator=imageGenerator(img_file,
-                                 steer,
-                                 NBatchSize=256,
-                                 BShuffle=True),
-        samples_per_epoch=len(steer),
+        generator=image_data_generator(df=df,
+                                       batch_size=256,
+                                       shuffle=True),
+        samples_per_epoch=df.shape[0],
         nb_epoch=n_epochs,
         verbose=1)
     print('Training done')
@@ -89,4 +83,5 @@ def train(model, file_name, n_epochs=1, batch_size=256):
 
 if __name__ == "__main__":
     model = nvidia()
-    train(model=model, file_name='data/driving_log.csv', n_epochs=5)
+    df = make_df('data/driving_log.csv')
+    train(model=model, df=df, n_epochs=5)

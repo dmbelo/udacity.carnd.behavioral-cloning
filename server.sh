@@ -6,7 +6,7 @@ instance_id=i-0d67c40ac879ecb9c
 
 function server_usage
 {
-  echo "usage: server (start|stop|sync|ssh)"
+  echo "usage: server (start|stop|push|fetch|ssh)"
 }
 
 function server_start
