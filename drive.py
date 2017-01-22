@@ -42,12 +42,15 @@ def telemetry(sid, data):
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
+    img = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+    print(img.shape)
+    cv2.imshow('simulator', img)
+    cv2.waitKey(0)
     processed_image_array = process_image(image_array)
     # if i % 25:
     # cv2.imwrite('~/Documents/udacity/carnd.behavioral-cloning/data/sim/image.jpg', processed_image_array)
     # i += 1
     # print(processed_image_array.shape)
-    # cv2.imshow('simulator', processed_image_array)
     steering_angle = float(model.predict(processed_image_array[None, :, :, :], batch_size=1))
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
     throttle = 0.2

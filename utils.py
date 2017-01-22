@@ -138,10 +138,16 @@ def image_data_generator(df, batch_size=32, shuffle=False):
         batch_steer = np.zeros([i_end - i_start, 1])
 
         for j, k in enumerate(range(i_start, i_end)):
+            steer = df.loc[idx[k], 'steering'] + np.random.randn() * 0.025
             img = cv2.imread('data/' + df.loc[idx[k], 'image_file'].strip())
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            b_flip = np.random.random_integers(0, 1)
+            if b_flip:
+                img = cv2.flip(img, 1)
+                steer = -steer
+
             batch_image[j] = process_image(img)
-            batch_steer[j] = df.loc[idx[k], 'steering']
+            batch_steer[j] = steer
         yield batch_image, batch_steer
 
         if i_end == n_images:
