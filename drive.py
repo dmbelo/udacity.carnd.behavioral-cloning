@@ -1,23 +1,15 @@
 import argparse
 import base64
-import json
-
 import numpy as np
 import socketio
 import eventlet
 import eventlet.wsgi
-import time
+
 from PIL import Image
-from PIL import ImageOps
-from flask import Flask, render_template
+from flask import Flask
 from io import BytesIO
-
 from keras.models import model_from_json
-from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array
-
 from utils import process_image
-
-import cv2
 
 # Fix error with Keras and TensorFlow
 import tensorflow as tf
@@ -29,32 +21,23 @@ app = Flask(__name__)
 model = None
 prev_image_array = None
 
+
 @sio.on('telemetry')
 def telemetry(sid, data):
-    i = 0
     # The current steering angle of the car
     steering_angle = data["steering_angle"]
     # The current throttle of the car
     throttle = data["throttle"]
     # The current speed of the car
-    speed = data["speed"]
+    # speed = data["speed"]
     # The current image from the center camera of the car
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
-    # img = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
-    # print(img.shape)
-    # cv2.imshow('simulator', img)
-    # cv2.waitKey(0)
     processed_image_array = process_image(image_array)
-    # if i % 25:
-    # cv2.imwrite('~/Documents/udacity/carnd.behavioral-cloning/data/sim/image.jpg', processed_image_array)
-    # i += 1
-    # print(processed_image_array.shape)
     steering_angle = float(model.predict(processed_image_array[None, :, :, :], batch_size=1))
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
     throttle = 0.2
-    print(steering_angle, throttle)
     send_control(steering_angle, throttle)
 
 
@@ -84,7 +67,6 @@ if __name__ == '__main__':
         #
         # instead.
         model = model_from_json(jfile.read())
-
 
     model.compile("adam", "mse")
     weights_file = args.model.replace('json', 'h5')
