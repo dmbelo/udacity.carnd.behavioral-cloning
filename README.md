@@ -18,7 +18,7 @@ No dropouts were included in the original NVIDIA model and none were introduced 
 
 # Training Data
 
-![Original Data Histogram](etc/hist_original.png) ![Pre-processed Data Histogram](etc/hist_filtered.png)
+![Histogram](etc/hist.png)
 
 ![Vehicle Data](etc/vehicle_signals.png)
 
