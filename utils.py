@@ -6,16 +6,24 @@ import cv2
 
 def plot(df):
     ax1 = plt.subplot(411)
-    plt.plot(df.steering, 'o')
+    plt.plot(df.steering)
+    plt.xlabel('Index')
+    plt.ylabel('Steering')
 
     plt.subplot(412, sharex=ax1)
-    plt.plot(df.throttle, 'o')
+    plt.plot(df.throttle)
+    plt.xlabel('Index')
+    plt.ylabel('Throttle')
 
     plt.subplot(413, sharex=ax1)
-    plt.plot(df.brake, 'o')
+    plt.plot(df.brake)
+    plt.xlabel('Index')
+    plt.ylabel('Brake')
 
     plt.subplot(414, sharex=ax1)
-    plt.plot(df.speed, 'o')
+    plt.plot(df.speed)
+    plt.xlabel('Index')
+    plt.ylabel('Speed')
 
     plt.show(block=False)
 

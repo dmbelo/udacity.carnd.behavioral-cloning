@@ -14,10 +14,15 @@ This model uses 5 convolutional layers followed by 4 fully connected layers. All
 
 Furthermore, all convolutional layers included some form of down sampling: a stride greater than 1 was used for the first 3 layers, and all layers used a valid padding. These value were chosen to improve the speed of learning while balancing minimal impact on performance as observed on the simulator.
 
+No dropouts were included in the original NVIDIA model and none were introduced here. Dropouts are typically included to minimize over-fitting but through the training process it seemed that over-fitting minimization techniques implemented in the data augmentation step were satisfactory on their own.
+
 # Training Data
 
-[INSERT GRAPHIC OF DISTRIBUTION]
-[INSERT GRAPHIC OF TIME SERIES]
+![Original Data Histogram](etc/hist_original.png)
+
+![Pre-processed Data Histogram](etc/hist_filtered.png)
+
+![Vehicle Data](etc/vehicle_signals.png)
 
 The training data used for the model was derived the data set provided by Udacity which consisted of 8036 images with their respective steering, braking control and vehicle velocity values. In addition, left and right camera angles were provided to compliment each center image.
 
