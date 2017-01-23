@@ -140,7 +140,7 @@ def process_image(img):
 
 
 def idx_init(idx, shuffle):
-    """Initialize i_start and idx values for a complete pass of training data"""
+    """Initialize i_start and idx for a complete pass of training data"""
     if shuffle:
         np.random.shuffle(idx)
     i_start = 0
@@ -161,7 +161,7 @@ def image_data_generator(df, batch_size=32, shuffle=False):
     sample_image = cv2.imread('data/' + df.image_file.iloc[0].strip())
     image_shape = process_image(sample_image).shape
 
-    i_start = epoch_init(idx, shuffle)
+    i_start = idx_init(idx, shuffle)
 
     while True:
         # Calculated the ending index for this batch
@@ -191,7 +191,7 @@ def image_data_generator(df, batch_size=32, shuffle=False):
             batch_steer[j] = steer
         yield batch_image, batch_steer
 
-        if i_end == n_images: # End of the training set, re-initialize
+        if i_end == n_images:  # End of the training set, re-initialize
             i_start = idx_init(idx, shuffle)
         else:
             i_start = i_end
