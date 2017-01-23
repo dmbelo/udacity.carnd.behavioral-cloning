@@ -1,0 +1,8 @@
+.git/
+.gitignore
+__pycache__
+bin/
+*.lprof
+*.DS_Store
+models/
+sim/
