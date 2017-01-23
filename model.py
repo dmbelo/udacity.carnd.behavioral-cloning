@@ -12,6 +12,7 @@ print('Image Shape:', image_shape)
 
 
 def nvidia():
+    """Implementation of the NVIDIA model"""
     model = Sequential()
     model.add(Lambda(lambda x: x/127.5 - 1.0, input_shape=image_shape))
     model.add(Convolution2D(
@@ -59,7 +60,7 @@ def nvidia():
 
 
 def train(model, df, n_epochs=1, batch_size=256):
-
+    """Model training function""""
     model.compile(
         loss='mean_squared_error',
         optimizer=Adam(lr=1e-3))
@@ -82,6 +83,7 @@ def train(model, df, n_epochs=1, batch_size=256):
     print("Saved model to disk")
 
 if __name__ == "__main__":
+    """Run the training"""
     model = nvidia()
     df = make_df('data/driving_log.csv')
     train(model=model, df=df, n_epochs=5)
