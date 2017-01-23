@@ -7,7 +7,7 @@ To use this model first launch the Udacity Self Driving Car Nanodegree Simulator
 # Model Architecture
 
 [INSERT GRAPHIC OF LAYERS]
-![Model Architecture](//etc/ModelArchitecture.png)
+![Model Architecture](etc/ModelArchitecture.png)
 
 The model architecture implemented has been largely based on the NVIDIA model presented in their their end-to-end approach paper
 
