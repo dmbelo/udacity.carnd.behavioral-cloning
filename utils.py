@@ -195,3 +195,35 @@ def image_data_generator(df, batch_size=32, shuffle=False):
             i_start = idx_init(idx, shuffle)
         else:
             i_start = i_end
+
+
+def validation_set_generator(df, batch_size=32):
+
+    idx = df.index.copy().values
+    n_images = df.shape[0]
+
+    sample_image = cv2.imread('data/' + df.image_file.iloc[0].strip())
+    image_shape = process_image(sample_image).shape
+
+    i_start = 0
+
+    while True:
+        i_end = np.min([i_start + batch_size, n_images])
+        n = i_end-i_start
+        batch_image_size = np.concatenate([[n], image_shape])
+        batch_image = np.zeros(batch_image_size, dtype=np.uint8)
+        batch_steer = np.zeros([i_end - i_start, 1])
+        # For each sample in this batch
+        for j, k in enumerate(range(i_start, i_end)):
+            steer = df.loc[idx[k], 'steering']
+            img = cv2.imread('data/' + df.loc[idx[k], 'image_file'].strip())
+            # Convert to RGB
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            batch_image[j] = process_image(img)
+            batch_steer[j] = steer
+        yield batch_image, batch_steer
+
+        if i_end == n_images:  # End of the set, re-initialize
+            i_start = 0
+        else:
+            i_start = i_end

@@ -5,4 +5,6 @@ bin/
 *.lprof
 *.DS_Store
 models/
+model.h5
+model.json
 sim/
