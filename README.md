@@ -14,7 +14,7 @@ The model uses 5 convolutional layers followed by 4 fully connected layers. All 
 
 Furthermore, all convolutional layers include some form of down sampling: a stride greater than 1 is used for the first 3 layers, and all layers use a valid padding. These value have been chosen to improve the training speed while balancing minimal impact on performance observed on the simulator.
 
-No dropouts layers are included in the original NVIDIA model and none are introduced here. Dropouts are typically included to minimize over-fitting but throughout the design and training process it seemed that over-fitting minimization techniques implemented in the data augmentation step were satisfactory on their own.
+Dropouts layers are added on top of the original NVIDIA model, specifically after each convolutional and fully connected layers. Dropouts are typically included to minimize over-fitting. A drop out rate of 0.3 (30% of the input nodes are ignored) was chosen for the dropout layers following the convolutional layers, and a 0.5 rate was chosen for the dropout layers following the fully connected layers. These rates were chosen empirically. A higher dropout rate results in a more that is more robust and less prone to over fitting but this comes at the expense of learning time or even convergence.
 
 In total the model has 8,002,167 parameters which are learned through the training process.
 
@@ -48,3 +48,13 @@ The real-time augmentation step consists of various operations performed on imag
 Since these augmentation techniques are themselves random and changing every during every batch pass, we are in essence introducing mechanism that minimizes over-fitting. Like drop-outs which randomly shut-off nodes in a forward-pass of the model, these augmentation techniques randomly add noise and modifications to the images which prevent the model from over-fit to a specific set of images.
 
 With these modifications the dataset is increased to 25,000 images from 10,725.
+
+## Validation data
+
+A set of 2500 images are set aside randomly at the beginning of the training process to assess the performance of the model after each epoch. This is done in order to provide a measure of over fitting by comparing the error of the model against the training data with the error against the validation set.
+
+## Hyperparameter Tuning
+
+The initial value of the learning rate for the adam optimizer was chosen from experience to be 1e-4. From there the rate was increased eventually to 1e-3 which resulted in faster learning. Usually this is compromise between learning speed and final accuracy but the impact on accuracy was not measurable in this case.
+
+The number of epochs was chosen to be 10 in order to give the optimization enough time for the validation loss to 'plateau'. The model was saved each time the validation loss was improved as as such, a sufficiently large number of epochs allows for various models by comparing not only their validation losses but by visually inspecting their driving ability in the simulator.
